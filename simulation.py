@@ -1,0 +1,110 @@
+from typing import Callable, List, Dict, Any # We need to initialize the elemends of the class and this helps us to do that. 
+from bisect import bisect_right
+import distributionsclass as dc
+from riderclass import Rider
+from driverclass import Driver
+
+print("simulation.py loaded successfully")
+
+class Simulation:
+    def __init__(self, handlers, distributions: Any = None):
+        self.simulation_length = 1000 # Termination time
+        self.current_time = 0         # Keep tracks of simulation clock
+        self.drivers_system_size = 0          # Keeps track of Q_D(t)
+        self.riders_system_size = 0          # Keeps track of Q_R(t)
+        self.area_drivers_system_size = 0 # AQ_D(t)
+        self.area_riders_system_size = 0  # AR_D(t)
+        self.average_profit = 0 #avergae profit per driver 
+        self.waiting_time = 0 #average waiting time ( riders ) 
+        self.rest_time = 0 #average rest time (drivers) 
+
+        
+        self.event_calendar: List[Dict[str, Any , Any]] = [] # Event calendar is initialized as empty the structure : str: event type, Any : time , Any: driver/rider object
+        self.distributions: Dict[str, Callable[[Any], None]] = {} 
+        self.event_handlers: Dict[str, Callable[[Any], None]] = {} # The event_handlers list will associate each event with the modules/functions necessary to execute that event. This list is empty and designed to be dynamic to flexiblity add or remove event types.
+        self.riders : List[Rider] = []
+        self.drivers : List[Driver] = []
+
+        if distributions:
+            self.register_distribution("driver_inter-arrival_", distributions.driver_interarrival)
+            self.register_distribution("rider_inter-arrival_", distributions.rider_interarrival)
+            self.register_distribution("location", distributions.generate_location)
+            self.register_distribution("ride_length", distributions.generate_ride_length)
+            self.register_distribution("driver_logout", distributions.driver_log_out)
+            self.register_distribution("abandomnent", distributions.rider_abandonment)
+        
+        if handlers:
+            self.register_event_handler("rider_arrival", handlers.rider_arrival)
+            self.register_event_handler("driver_arrival", handlers.driver_arrival)
+            self.register_event_handler("driver_departure", handlers.driver_departure)
+            self.register_event_handler("rider_departure", handlers.rider_departure)
+            self.register_event_handler("driver_finish", handlers.driver_finish)
+            self.register_event_handler("termination", handlers.termination)
+            
+        # first_arrival = self.current_time + self.distributions["inter-arrival"]()
+        # self.add_event(first_arrival, "arrival", None)
+        # self.add_event(self.simulation_length, "termination", None)
+            
+            
+        
+        
+    def add_event(self, event_time:float, event_type: str, event_data: Any = None)->None:
+        event = {'time': event_time, 'type': event_type, 'person': event_data}
+        index = bisect_right([e['time'] for e in self.event_calendar], event_time)
+        self.event_calendar.insert(index, event)
+        
+    def register_distribution(self, random_quantity: str, handler: Callable[[Any], None]):
+        self.distributions[random_quantity] = handler
+        
+        
+    def register_event_handler(self, event_type: str, handler: Callable[[Any], None]) -> None:
+        # This function allows us to dynamically add event types to the list.
+        self.event_handlers[event_type] = handler
+        
+    def progress_time(self) -> None:
+        if not self.event_calendar:
+            print("No more events to process.")
+            return
+
+        next_event = self.event_calendar.pop(0)
+        previous_time = self.current_time
+        self.current_time = next_event['time']
+        event_type = next_event['type']
+        event_data = next_event['person']
+        
+        self.area_drivers_system_size += self.drivers_system_size*(self.current_time - previous_time)
+        self.area_riders_system_size += self.riders_system_size*(self.current_time - previous_time)
+
+        print(f"Processing event: {event_type} at time {self.current_time}")
+
+        if event_type in self.event_handlers:
+            self.event_handlers[event_type](event_data)
+        else:
+            print(f"No handler registered for event type: {event_type}")
+            
+            
+    def run(self) -> None:
+        """
+        Run the simulation until all events are processed or a 'termination' event is encountered.
+        """
+        print(self.event_calendar)
+        terminate_sim = 0
+        while self.event_calendar:
+            next_event = self.event_calendar[0]  # Peek at the next event
+            if next_event['type'] == "termination":
+                terminate_sim = 1
+            self.progress_time()
+            if terminate_sim == 1:
+                break
+        if terminate_sim == 0:
+            print("No more event to execute!")
+            
+        
+        
+            
+            
+            
+        
+            
+        
+        
