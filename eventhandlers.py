@@ -6,11 +6,11 @@ class EventHandlers :
     def rider_arrival(self,event_data : Any):
         hf.rider_arrival(self.simulation)
     def rider_departure(self,event_data : Any):
-        hf.rider_departure(self.simulation)
+        hf.rider_departure(self.simulation, event_data)
     def driver_arrival(self,event_data : Any):
         hf.driver_arrival(self.simulation)
     def driver_departure(self, event_data : Any):
-        hf.driver_departure(self.simulation)
+        hf.driver_departure(self.simulation, event_data)
     def driver_finish(self ,event_data : Any): 
         hf.driver_finish(self.simulation)
     def termination(self,event_data : Any):

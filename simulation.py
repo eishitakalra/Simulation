@@ -8,7 +8,7 @@ print("simulation.py loaded successfully")
 
 class Simulation:
     def __init__(self, handlers, distributions: Any = None):
-        self.simulation_length = 1000 # Termination time
+        self.simulation_length = 50 # Termination time
         self.current_time = 0         # Keep tracks of simulation clock
         self.drivers_system_size = 0          # Keeps track of Q_D(t)
         self.riders_system_size = 0          # Keeps track of Q_R(t)
@@ -26,8 +26,8 @@ class Simulation:
         self.drivers : List[Driver] = []
 
         if distributions:
-            self.register_distribution("driver_inter-arrival_", distributions.driver_interarrival)
-            self.register_distribution("rider_inter-arrival_", distributions.rider_interarrival)
+            self.register_distribution("driver_inter-arrival", distributions.driver_interarrival)
+            self.register_distribution("rider_inter-arrival", distributions.rider_interarrival)
             self.register_distribution("location", distributions.generate_location)
             self.register_distribution("ride_length", distributions.generate_ride_length)
             self.register_distribution("driver_logout", distributions.driver_log_out)
@@ -41,9 +41,11 @@ class Simulation:
             self.register_event_handler("driver_finish", handlers.driver_finish)
             self.register_event_handler("termination", handlers.termination)
             
-        # first_arrival = self.current_time + self.distributions["inter-arrival"]()
-        # self.add_event(first_arrival, "arrival", None)
-        # self.add_event(self.simulation_length, "termination", None)
+        first_rider_arrival = self.current_time + self.distributions["rider_inter-arrival"]()
+        first_driver_arrival = self.current_time + self.distributions["driver_inter-arrival"]()
+        self.add_event(first_rider_arrival, "rider_arrival", None)
+        self.add_event(first_driver_arrival, "driver_arrival", None)
+        self.add_event(self.simulation_length, "termination", None)
             
             
         

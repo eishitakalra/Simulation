@@ -28,7 +28,7 @@ class Distributions:
         coordinates = [x, y]
         return coordinates
     
-    def generate_ride_length(self, expected_trip_time)->float:
+    def generate_ride_length(self, expected_trip_time : float)->float:
         u = expected_trip_time
         ride_length = random.uniform(0.8*u, 1.2*u)  # Random time between 5 and 8 hours
         return ride_length
