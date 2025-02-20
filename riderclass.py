@@ -7,7 +7,7 @@ class Rider:
     i = 1  #track IDs
 
     def __init__(self, pickup_location, drop_location ,  sim_instance : "Simulation"):
-        self.id = f"d{Rider.i}"  # Auto-generate ID
+        self.id = f"r{Rider.i}"  # Auto-generate ID
         self.pickup_location = pickup_location
         self.drop_location = drop_location
         Rider.i += 1  # Increment for the next rider

@@ -78,6 +78,7 @@ def driver_departure(sim_instance : Simulation,  driver : d ):
     """
     if driver.is_available == False : #if he is serving a rider
         sim_instance.modify_event( "driver_finish",driver, driver.ride_end_time, "driver_departure"  , driver ) # he will log out when he finishes the ride 
+        sim_instance.driver_csv.append([driver.id , driver.initial_location , driver.log_in_time , driver.log_out_time])
     else : 
         driver.log_out()
         sim_instance.drivers_system_size -= 1 
@@ -119,7 +120,7 @@ def termination( sim_instance: Simulation ):
         writer.writerows(sim_instance.driver_csv)
     with open("rider.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["Driver_ID", "Initial_Location", "Arrival", "Offline"])
+        writer.writerow(["Rider_ID", "Initial_Location", "Dropoff_Location", "status", "systemjoin" , "pickup" , "dropoff"])
         writer.writerows(sim_instance.rider_csv)
     print("done")
 
