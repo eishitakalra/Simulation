@@ -1,15 +1,18 @@
 import time
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from simulation import Simulation
 
 class Rider:
     i = 1  #track IDs
 
-    def __init__(self, pickup_location, drop_location):
-        self.rider_id = f"d{Rider.i}"  # Auto-generate ID
+    def __init__(self, pickup_location, drop_location ,  sim_instance : "Simulation"):
+        self.id = f"d{Rider.i}"  # Auto-generate ID
         self.pickup_location = pickup_location
         self.drop_location = drop_location
         Rider.i += 1  # Increment for the next rider
 
-        self.arrival_time = time.time()  # Time when the rider requested a ride
+        self.arrival_time = sim_instance.current_time  # Time when the rider requested a ride
         self.driver_assign_time = None
         self.drop_off_time = None
 

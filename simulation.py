@@ -8,16 +8,18 @@ print("simulation.py loaded successfully")
 
 class Simulation:
     def __init__(self, handlers, distributions: Any = None):
-        self.simulation_length = 50 # Termination time
+        self.simulation_length = 24 # Termination time
         self.current_time = 0         # Keep tracks of simulation clock
         self.drivers_system_size = 0          # Keeps track of Q_D(t)
         self.riders_system_size = 0          # Keeps track of Q_R(t)
         self.area_drivers_system_size = 0 # AQ_D(t)
         self.area_riders_system_size = 0  # AR_D(t)
-        self.average_profit = 0 #avergae profit per driver 
-        self.waiting_time = 0 #average waiting time ( riders ) 
-        self.rest_time = 0 #average rest time (drivers) 
-
+        self.total_riders =0 
+        self.total_drivers = 0 
+        self.profit = [] #avergae profit per driver 
+        self.waiting_time = [] #average waiting time ( riders ) 
+        self.rest_time = [] #average rest time (drivers) 
+        self.abandonment = 0 # number of people abandonning the system 
         
         self.event_calendar: List[Dict[str, Any , Any]] = [] # Event calendar is initialized as empty the structure : str: event type, Any : time , Any: driver/rider object
         self.distributions: Dict[str, Callable[[Any], None]] = {} 
@@ -46,15 +48,34 @@ class Simulation:
         self.add_event(first_rider_arrival, "rider_arrival", None)
         self.add_event(first_driver_arrival, "driver_arrival", None)
         self.add_event(self.simulation_length, "termination", None)
+        t_d = first_driver_arrival
+        t_r = first_rider_arrival
+        while t_r < self.simulation_length :
+            t_r = self.distributions["rider_inter-arrival"]() + t_r 
+            self.add_event(t_r ,"rider_arrival" , None)
+        while t_d < self.simulation_length : 
+            t_d = self.distributions["driver_inter-arrival"]() + t_d
+            self.add_event(t_d ,"driver_arrival" , None)
+
             
             
         
         
-    def add_event(self, event_time:float, event_type: str, event_data: Any = None)->None:
+    def add_event(self, event_time:float, event_type: str, event_data: Any =  None )->None:
         event = {'time': event_time, 'type': event_type, 'person': event_data}
         index = bisect_right([e['time'] for e in self.event_calendar], event_time)
         self.event_calendar.insert(index, event)
         
+    def modify_event(self, event_type: str, event_data: Any, new_event_time: float, new_event_type: str , new_event_data: Any )-> None:
+        """
+        Finds an event by type and data, modifies it, and keeps the event calendar sorted.
+        """
+        for i, event in enumerate(self.event_calendar):
+            if event['type'] == event_type and event['person'] == event_data:
+                self.event_calendar.pop(i) # Remove the event from the calendar
+                updated_event = {'time': new_event_time , 'type': new_event_type , 'person': new_event_data }  # Update the event fields 
+                self.add_event(updated_event['time'], updated_event['type'], updated_event['person'])
+
     def register_distribution(self, random_quantity: str, handler: Callable[[Any], None]):
         self.distributions[random_quantity] = handler
         
@@ -77,12 +98,30 @@ class Simulation:
         self.area_drivers_system_size += self.drivers_system_size*(self.current_time - previous_time)
         self.area_riders_system_size += self.riders_system_size*(self.current_time - previous_time)
 
-        print(f"Processing event: {event_type} at time {self.current_time}")
+        # Open a log file in append mode
+        log_file = open(r"C:\Users\essid\OneDrive", "a")
 
+        # Process events
+        if event_data is None and event_type == "rider_arrival":
+            rider_id = self.total_riders + 1
+            log_file.write(f"Processing event: {event_type} at time {self.current_time} for person r{rider_id}\n")
+        elif event_data is None and event_type == "driver_arrival":
+            driver_id = self.total_drivers + 1
+            log_file.write(f"Processing event: {event_type} at time {self.current_time} for person d{driver_id}\n")
+        elif event_type == "termination":
+            log_file.write(f"Processing event: {event_type} at time {self.current_time}\n")
+        else:
+            log_file.write(f"Processing event: {event_type} at time {self.current_time} for person {event_data.id}\n")
+
+        # Handle event if a handler exists
         if event_type in self.event_handlers:
             self.event_handlers[event_type](event_data)
         else:
-            print(f"No handler registered for event type: {event_type}")
+            log_file.write(f"No handler registered for event type: {event_type}\n")
+
+        # Close the file after writing
+        log_file.close()
+
             
             
     def run(self) -> None:
