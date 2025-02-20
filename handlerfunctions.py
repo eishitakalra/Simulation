@@ -20,8 +20,9 @@ def rider_arrival(sim_instance : Simulation):
     time = sim_instance.current_time
     if driver:
         Rider.assign_driver(rider,driver)
-        driver.start_ride(rider , time)
-        ride_length = time  + sim_instance.distributions["ride_length"](driver.expected_trip_time)  
+        driver.start_ride(rider)
+        arrival = driver.ride_start_time # the ride starts when the driver arrives
+        ride_length = arrival  + sim_instance.distributions["ride_length"](driver.expected_trip_time)  
         sim_instance.add_event(ride_length, "rider_departure"  , rider)
         sim_instance.add_event(ride_length , "driver_finish" , driver)
     else:
@@ -35,11 +36,9 @@ def rider_departure(sim_instance : Simulation , r1 : Rider ):
     if  r1.status == "Waiting": # if the rider abandon the system based on the event calendar
         r1.abandon_ride() 
         sim_instance.abandonment += 1 
-        print("abondended")
         sim_instance.rider_csv.append([r1.id , r1.pickup_location , r1.drop_location , r1.status , r1.wait_start_time , "" , "" ])
     else:
         r1.complete_ride()
-        print("completed")
         sim_instance.rider_csv.append([r1.id , r1.pickup_location , r1.drop_location , r1.status , r1.wait_start_time , "" , r1.drop_off_time ])
         #sim_instance.average_wait = (sim_instance.average_wait + r1.wait_time ) / 2 
     
@@ -67,8 +66,9 @@ def driver_arrival( sim_instance : Simulation):
     if rider:
         time = sim_instance.current_time 
         Rider.assign_driver(rider,driver)
-        driver.start_ride(rider , time)
-        ride_length = time  + sim_instance.distributions["ride_length"](driver.expected_trip_time) 
+        driver.start_ride(rider)
+        arrival = driver.ride_start_time
+        ride_length = arrival  + sim_instance.distributions["ride_length"](driver.expected_trip_time) 
         sim_instance.modify_event( "rider_departure",rider,ride_length , "rider_departure"  , rider )
         sim_instance.add_event(ride_length , "driver_finish" , driver)
 
@@ -78,11 +78,12 @@ def driver_departure(sim_instance : Simulation,  driver : d ):
     """
     if driver.is_available == False : #if he is serving a rider
         sim_instance.modify_event( "driver_finish",driver, driver.ride_end_time, "driver_departure"  , driver ) # he will log out when he finishes the ride 
-        sim_instance.driver_csv.append([driver.id , driver.initial_location , driver.log_in_time , driver.log_out_time])
     else : 
         driver.log_out()
         sim_instance.drivers_system_size -= 1 
         sim_instance.driver_csv.append([driver.id , driver.initial_location , driver.log_in_time , driver.log_out_time])
+        sim_instance.clients.append(driver.clients)
+        sim_instance.profit.append(driver.profit /( driver.log_out_time - driver.log_in_time))
         #sim_instance.average_profit = (driver.profit + sim_instance.average_profit ) /2 
         sim_instance.drivers.remove(driver)
     
@@ -103,8 +104,9 @@ def driver_finish( sim_instance : Simulation , driver : d  ):
     time = sim_instance.current_time
     if rider:
         Rider.assign_driver(rider,driver)
-        driver.start_ride(rider,time)
-        ride_length = time  + sim_instance.distributions["ride_length"](driver.expected_trip_time) 
+        driver.start_ride(rider)
+        arrival = driver.ride_start_time
+        ride_length = arrival + sim_instance.distributions["ride_length"](driver.expected_trip_time) 
         sim_instance.modify_event( "rider_departure",rider,ride_length , "rider_departure"  , rider )
         sim_instance.add_event(ride_length , "driver_finish" , driver)
 
@@ -112,15 +114,27 @@ def termination( sim_instance: Simulation ):
     print(f"abandonment rate {sim_instance.abandonment/sim_instance.total_riders}")
     print(f"average system size  - drivers {sim_instance.area_drivers_system_size / sim_instance.simulation_length}")
     print(f"average system size  - riders {sim_instance.area_riders_system_size / sim_instance.simulation_length}")
-    print(f"total drivers : {sim_instance.total_drivers}")
-    print(f"total riders : {sim_instance.total_riders}")
+    print(f"average number of riders per driving session : {sum(sim_instance.clients)/len(sim_instance.clients)}")
+    print(f"maximum number of riders per driving session : {max(sim_instance.clients)}")
+    print(f"minimum number of riders per driving session : {min(sim_instance.clients)}")
+    print(f"average earnings per hour : {sum(sim_instance.profit)/len(sim_instance.profit)}")
+    # print(f"total drivers : {sim_instance.total_drivers}")
+    # print(f"total riders : {sim_instance.total_riders}")
     with open("driver.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["Driver_ID", "Initial_Location", "Arrival", "Offline"])
-        writer.writerows(sim_instance.driver_csv)
+        all_drivers = sim_instance.driver_csv + [
+        [driver.id, driver.initial_location, driver.log_in_time, driver.log_out_time]
+        for driver in sim_instance.drivers ]
+        all_drivers.sort(key=lambda row: row[2])
+        writer.writerows(all_drivers)
     with open("rider.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["Rider_ID", "Initial_Location", "Dropoff_Location", "status", "systemjoin" , "pickup" , "dropoff"])
-        writer.writerows(sim_instance.rider_csv)
+        all_riders = sim_instance.rider_csv + [
+        [rider.id , rider.pickup_location , rider.drop_location , rider.status , rider.wait_start_time , "" , ""]
+        for rider in sim_instance.riders ]
+        all_riders.sort(key=lambda row: row[4])
+        writer.writerows(all_riders)
     print("done")
 

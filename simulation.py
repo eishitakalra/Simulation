@@ -16,6 +16,7 @@ class Simulation:
         self.area_riders_system_size = 0  # AR_D(t)
         self.total_riders =0 
         self.total_drivers = 0 
+        self.clients = []
         self.profit = [] #avergae profit per driver 
         self.waiting_time = [] #average waiting time ( riders ) 
         self.rest_time = [] #average rest time (drivers) 

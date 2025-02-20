@@ -15,7 +15,7 @@ class Rider:
         self.arrival_time = sim_instance.current_time  # Time when the rider requested a ride
         self.driver_assign_time = None
         self.drop_off_time = None
-
+        self.assign_driver = 0
         self.assigned_driver = None  # Driver assigned to the rider
         self.status = "Waiting"  # Waiting, In Ride, Completed, Abandoned
         self.wait_start_time = self.arrival_time  # When the rider started waiting
