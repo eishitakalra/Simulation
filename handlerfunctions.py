@@ -1,6 +1,7 @@
 from riderclass import Rider
 from driverclass import Driver as d
 from  simulation  import Simulation
+import csv 
 def rider_arrival(sim_instance : Simulation):
     """
     when a new rider arrives, we add them to the system, and start checking whether there are any available drivers to associate them with.
@@ -35,10 +36,13 @@ def rider_departure(sim_instance : Simulation , r1 : Rider ):
         r1.abandon_ride() 
         sim_instance.abandonment += 1 
         print("abondended")
+        sim_instance.rider_csv.append([r1.id , r1.pickup_location , r1.drop_location , r1.status , r1.wait_start_time , "" , "" ])
     else:
         r1.complete_ride()
         print("completed")
+        sim_instance.rider_csv.append([r1.id , r1.pickup_location , r1.drop_location , r1.status , r1.wait_start_time , "" , r1.drop_off_time ])
         #sim_instance.average_wait = (sim_instance.average_wait + r1.wait_time ) / 2 
+    
     sim_instance.riders.remove(r1) # we drop the object from the list of riders in the system 
     sim_instance.riders_system_size -= 1
 
@@ -77,6 +81,7 @@ def driver_departure(sim_instance : Simulation,  driver : d ):
     else : 
         driver.log_out()
         sim_instance.drivers_system_size -= 1 
+        sim_instance.driver_csv.append([driver.id , driver.initial_location , driver.log_in_time , driver.log_out_time])
         #sim_instance.average_profit = (driver.profit + sim_instance.average_profit ) /2 
         sim_instance.drivers.remove(driver)
     
@@ -108,5 +113,13 @@ def termination( sim_instance: Simulation ):
     print(f"average system size  - riders {sim_instance.area_riders_system_size / sim_instance.simulation_length}")
     print(f"total drivers : {sim_instance.total_drivers}")
     print(f"total riders : {sim_instance.total_riders}")
+    with open("driver.csv", mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Driver_ID", "Initial_Location", "Arrival", "Offline"])
+        writer.writerows(sim_instance.driver_csv)
+    with open("rider.csv", mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Driver_ID", "Initial_Location", "Arrival", "Offline"])
+        writer.writerows(sim_instance.rider_csv)
     print("done")
 

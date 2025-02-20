@@ -26,6 +26,8 @@ class Simulation:
         self.event_handlers: Dict[str, Callable[[Any], None]] = {} # The event_handlers list will associate each event with the modules/functions necessary to execute that event. This list is empty and designed to be dynamic to flexiblity add or remove event types.
         self.riders : List[Rider] = []
         self.drivers : List[Driver] = []
+        self.driver_csv = []
+        self.rider_csv = []
 
         if distributions:
             self.register_distribution("driver_inter-arrival", distributions.driver_interarrival)
@@ -99,7 +101,7 @@ class Simulation:
         self.area_riders_system_size += self.riders_system_size*(self.current_time - previous_time)
 
         # Open a log file in append mode
-        log_file = open(r"C:\Users\essid\OneDrive", "a")
+        log_file = open(r"\workspaces\Simulation", "a")
 
         # Process events
         if event_data is None and event_type == "rider_arrival":

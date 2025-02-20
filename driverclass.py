@@ -11,6 +11,7 @@ class Driver:
     def __init__(self, location , sim_instance : "Simulation"):
         self.id = f"d{Driver.i}"  # have the ids in format d1 , d2 ... 
         Driver.i += 1 # incrementing the i to be ready for the next id 
+        self.initial_location = location  
         self.location = location  
         self.is_available = True 
         self.profit = 0.00
