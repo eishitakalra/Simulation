@@ -1,24 +1,24 @@
 abandonment statistics :
- Hourly abandonment rate: 7.75375
-Abandonment rate: 0.2580819638027876
+ Hourly abandonment rate: 7.870833333333334
+Abandonment rate: 0.2633633549898224
 Riders numbers:
- Average number of riders per driving session: 7.337910201839901
+ Average number of riders per driving session: 7.38055944055944
 Maximum number of riders per driving session: 13
-Minimum number of riders per driving session: 2
-Std Dev of riders per session: 1.4515566645553108
+Minimum number of riders per driving session: 3
+Std Dev of riders per session: 1.4775474747611712
 Earnings:
- Average earnings per hour: 21.13284692305644
-Maximum of earnings per hour: 31.98371703442417
-Minimum of earnings per hour: 9.316118818401982
-Std Dev of earnings per hour: 2.779851506678352
+ Average earnings per hour: 21.20153119386995
+Maximum of earnings per hour: 31.6265445671545
+Minimum of earnings per hour: 9.73819339249644
+Std Dev of earnings per hour: 2.8279072904195863
 Rest time:
- Average rest time per session: 0.4375376998099652
-Std Dev of rest time per session: 0.4949894947496899
+ Average rest time per session: 0.4190303714698295
+Std Dev of rest time per session: 0.46184270134714267
 Counts:
- Total number of drivers: 7298
-Total number of riders: 72121
+ Total number of drivers: 7169
+Total number of riders: 71745
 waiting time:
- Average waiting time per rider: 0.03940983504031652
-Maximum waiting time: 1.023687117805821
+ Average waiting time per rider: 0.04042616360404143
+Maximum waiting time: 0.9783797919264998
 Minimum waiting time: 0.0
-Std Dev of waiting time: 0.06992614467042531
+Std Dev of waiting time: 0.07162849055345197
