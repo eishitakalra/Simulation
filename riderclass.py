@@ -2,14 +2,15 @@ import time
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from simulation import Simulation
+    from driverclass import Driver
 
 class Rider:
     i = 1  #track IDs
 
-    def __init__(self, pickup_location, drop_location ,  sim_instance : "Simulation"):
+    def __init__(self,   sim_instance : "Simulation"):
         self.id = f"r{Rider.i}"  # Auto-generate ID
-        self.pickup_location = pickup_location
-        self.drop_location = drop_location
+        self.pickup_location =  sim_instance.distributions["location"]()
+        self.drop_location =  sim_instance.distributions["location"]()
         Rider.i += 1  # Increment for the next rider
 
         self.arrival_time = sim_instance.current_time  # Time when the rider requested a ride
@@ -22,13 +23,16 @@ class Rider:
         self.wait_time = 0  # Total wait time before getting a driver
         self.abandoned = False  # Whether the rider was abandoned
         self.abandonment_time = None  # Time of abandonment
+        self.sim_instance= sim_instance
+        self.pickup_time = None
 
-    def assign_driver(self, driver):
+    def assign_driver(self, driver : "Driver"):
         """Assign a driver to the rider"""
         self.assigned_driver = driver
-        self.wait_time = time.time() - self.wait_start_time  # Calculate waiting time
+        self.driver_assign_time = self.sim_instance.current_time
+        self.wait_time = self.driver_assign_time- self.wait_start_time  # Calculate waiting time
         self.status = "In Ride"
-        self.driver_assign_time = time.time()
+        self.pickup_time = driver.ride_start_time
         self.drop_off_time = driver.ride_end_time
 
 

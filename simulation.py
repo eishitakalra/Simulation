@@ -7,19 +7,15 @@ from driverclass import Driver
 print("simulation.py loaded successfully")
 
 class Simulation:
-    def __init__(self, handlers, distributions: Any = None):
-        self.simulation_length = 24 # Termination time
+    def __init__(self, handlers, t = 0, distributions: Any = None):
+        self.simulation_length = t # Termination time
         self.current_time = 0         # Keep tracks of simulation clock
         self.drivers_system_size = 0          # Keeps track of Q_D(t)
         self.riders_system_size = 0          # Keeps track of Q_R(t)
         self.area_drivers_system_size = 0 # AQ_D(t)
         self.area_riders_system_size = 0  # AR_D(t)
-        self.total_riders =0 
-        self.total_drivers = 0 
-        self.clients = []
-        self.profit = [] #avergae profit per driver 
-        self.waiting_time = [] #average waiting time ( riders ) 
-        self.rest_time = [] #average rest time (drivers) 
+        self.total_riders =0 #currently in the system
+        self.total_drivers = 0  #currently in the system 
         self.abandonment = 0 # number of people abandonning the system 
         
         self.event_calendar: List[Dict[str, Any , Any]] = [] # Event calendar is initialized as empty the structure : str: event type, Any : time , Any: driver/rider object
@@ -29,6 +25,10 @@ class Simulation:
         self.drivers : List[Driver] = []
         self.driver_csv = []
         self.rider_csv = []
+        self.clients = []
+        self.profit = [] #avergae profit per driver 
+        self.waiting_time = [] #average waiting time ( riders ) 
+        self.rest_time = [] #average rest time (drivers) 
 
         if distributions:
             self.register_distribution("driver_inter-arrival", distributions.driver_interarrival)
@@ -64,20 +64,21 @@ class Simulation:
             
         
         
-    def add_event(self, event_time:float, event_type: str, event_data: Any =  None )->None:
+    def add_event(self, event_time: float, event_type: str, event_data: Any = None) -> None:
         event = {'time': event_time, 'type': event_type, 'person': event_data}
         index = bisect_right([e['time'] for e in self.event_calendar], event_time)
         self.event_calendar.insert(index, event)
-        
-    def modify_event(self, event_type: str, event_data: Any, new_event_time: float, new_event_type: str , new_event_data: Any )-> None:
+
+    def modify_event(self, event_type: str, event_data: Any, new_event_time: float, new_event_type: str, new_event_data: Any) -> None:
         """
         Finds an event by type and data, modifies it, and keeps the event calendar sorted.
         """
         for i, event in enumerate(self.event_calendar):
             if event['type'] == event_type and event['person'] == event_data:
-                self.event_calendar.pop(i) # Remove the event from the calendar
-                updated_event = {'time': new_event_time , 'type': new_event_type , 'person': new_event_data }  # Update the event fields 
+                self.event_calendar.pop(i)  # Remove the event from the calendar
+                updated_event = {'time': new_event_time, 'type': new_event_type, 'person': new_event_data}  # Update the event fields 
                 self.add_event(updated_event['time'], updated_event['type'], updated_event['person'])
+                return  # Ensure only the first match is modified
 
     def register_distribution(self, random_quantity: str, handler: Callable[[Any], None]):
         self.distributions[random_quantity] = handler
@@ -102,7 +103,7 @@ class Simulation:
         self.area_riders_system_size += self.riders_system_size*(self.current_time - previous_time)
 
         # Open a log file in append mode
-        log_file = open(r"\workspaces\Simulation", "a")
+        log_file = open(r"\workspaces\Simulation", "w")
 
         # Process events
         if event_data is None and event_type == "rider_arrival":
